@@ -34,4 +34,29 @@ artistsRouter.get('/:artistId', (req, res) => {
     res.status(200).json({artist: req.artist});
 });
 
+// Create an artist
+artistsRouter.post('/', (req, res) => {
+    const { name, dateOfBirth, biography } = req.body.artist;
+    const isCurrentlyEmployed = req.body.artist.isCurrentlyEmployed === 0 ? 0 : 1;
+
+    if (name && dateOfBirth && biography) {
+        db.run("INSERT INTO Artist (name, date_of_birth, biography, is_currently_employed) VALUES ($name, $dateOfBirth, $biography, $isCurrentlyEmployed)", {
+            $name: name,
+            $dateOfBirth: dateOfBirth,
+            $biography: biography,
+            $isCurrentlyEmployed: isCurrentlyEmployed
+        }, function(error) {
+            if (error) {
+                next(error);
+            } else {
+                db.get("SELECT * FROM Artist WHERE id = $id", {$id: this.lastID}, (error, row) => {
+                    res.status(201).json({artist: row});
+                });
+            }
+        });
+    } else {
+        res.status(400).send();
+    }
+});
+
 module.exports = artistsRouter;
