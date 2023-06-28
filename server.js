@@ -6,7 +6,7 @@ const errorhandler = require('errorhandler');
 
 const app = express();
 const PORT = process.env.PORT || 4001;
-const apiRouter = require('./api/api.js');
+const apiRouter = require('./api/api');
 
 app.use(bodyParser.json());
 app.use(morgan('dev'));
