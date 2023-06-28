@@ -59,4 +59,30 @@ artistsRouter.post('/', (req, res) => {
     }
 });
 
+// Update an artist
+artistsRouter.put('/:artistId', (req, res) => {
+    const { name, dateOfBirth, biography, isCurrentlyEmployed } = req.body.artist;
+    const id = req.params.artistId;
+
+    if (name && dateOfBirth && biography && isCurrentlyEmployed) {
+        db.run("UPDATE Artist SET name = $name, date_of_birth = $dateOfBirth, biography = $biography, is_currently_employed = $isCurrentlyEmployed WHERE id = $id", {
+            $id: id,
+            $name: name,
+            $dateOfBirth: dateOfBirth,
+            $biography: biography,
+            $isCurrentlyEmployed: isCurrentlyEmployed
+        }, (error) => {
+            if (error) {
+                next(error);
+            } else {
+                db.get("SELECT * FROM Artist WHERE id = $id", {$id: id}, (error, row) => {
+                    res.status(200).json({artist: row});
+                });
+            }
+        });
+    } else {
+        res.status(400).send();
+    }
+});
+
 module.exports = artistsRouter;
