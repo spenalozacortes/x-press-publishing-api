@@ -1,17 +1,20 @@
 const express = require('express');
 const sqlite3 = require('sqlite3');
 
-const seriesRouter = express.Router();
+const issuesRouter = require('./issues');
 const db = new sqlite3.Database(process.env.TEST_DATABASE || './database.sqlite');
+const seriesRouter = express.Router();
+
+seriesRouter.use('/:seriesId/issues', issuesRouter);
 
 // Search series in the database, if it exists attach it to req object along with its ID
-seriesRouter.param('seriesId', (req, res, next, id) => {
-    db.get("SELECT * FROM Series WHERE id = $id", {$id: id}, (error, row) => {
+seriesRouter.param('seriesId', (req, res, next, seriesId) => {
+    db.get("SELECT * FROM Series WHERE id = $id", {$id: seriesId}, (error, row) => {
         if (error) {
             next(error);
         } else if (row) {
             req.series = row;
-            req.id = id;
+            req.seriesId = seriesId;
             next();
         } else {
             res.status(404).send();
@@ -70,14 +73,14 @@ seriesRouter.post('/', validateData, (req, res) => {
 seriesRouter.put('/:seriesId', validateData, (req, res) => {
     const { name, description } = req.body.series;
     db.run("UPDATE Series SET name = $name, description = $description WHERE id = $id", {
-        $id: req.id,
+        $id: req.seriesId,
         $name: name,
         $description: description
     }, (error) => {
         if (error) {
             next(error);
         } else {
-            db.get("SELECT * FROM Series WHERE id = $id", {$id: req.id}, (error, row) => {
+            db.get("SELECT * FROM Series WHERE id = $id", {$id: req.seriesId}, (error, row) => {
                 if (error) {
                     next(error);
                 } else {
