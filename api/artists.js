@@ -4,13 +4,14 @@ const sqlite3 = require('sqlite3');
 const artistsRouter = express.Router();
 const db = new sqlite3.Database(process.env.TEST_DATABASE || './database.sqlite');
 
-// Search an artist in the database and attach it to the request object
-artistsRouter.param('artistId', (req, res, next, artistId) => {
-    db.get("SELECT * FROM Artist WHERE id = $artistId", {$artistId: artistId}, (error, row) => {
+// Search an artist in the database and attach it to the request object along with its ID
+artistsRouter.param('artistId', (req, res, next, id) => {
+    db.get("SELECT * FROM Artist WHERE id = $artistId", {$artistId: id}, (error, row) => {
         if (error) {
             next(error);
         } else if (row) {
             req.artist = row;
+            req.id = id;
             next();
         } else {
             res.status(404).send();
@@ -62,11 +63,10 @@ artistsRouter.post('/', (req, res) => {
 // Update an artist
 artistsRouter.put('/:artistId', (req, res) => {
     const { name, dateOfBirth, biography, isCurrentlyEmployed } = req.body.artist;
-    const id = req.params.artistId;
 
     if (name && dateOfBirth && biography && isCurrentlyEmployed) {
         db.run("UPDATE Artist SET name = $name, date_of_birth = $dateOfBirth, biography = $biography, is_currently_employed = $isCurrentlyEmployed WHERE id = $id", {
-            $id: id,
+            $id: req.id,
             $name: name,
             $dateOfBirth: dateOfBirth,
             $biography: biography,
@@ -75,7 +75,7 @@ artistsRouter.put('/:artistId', (req, res) => {
             if (error) {
                 next(error);
             } else {
-                db.get("SELECT * FROM Artist WHERE id = $id", {$id: id}, (error, row) => {
+                db.get("SELECT * FROM Artist WHERE id = $id", {$id: req.id}, (error, row) => {
                     res.status(200).json({artist: row});
                 });
             }
@@ -83,6 +83,19 @@ artistsRouter.put('/:artistId', (req, res) => {
     } else {
         res.status(400).send();
     }
+});
+
+// "Delete" an artist (set to unemployed)
+artistsRouter.delete('/:artistId', (req, res) => {
+    db.run("UPDATE Artist SET is_currently_employed = 0 WHERE id = $id", {$id: req.id}, (error) => {
+        if (error) {
+            next(error);
+        } else {
+            db.get("SELECT * FROM Artist WHERE id = $id", {$id: req.id}, (error, row) => {
+                res.status(200).json({artist: row});
+            });
+        }
+    });
 });
 
 module.exports = artistsRouter;
