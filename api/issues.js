@@ -35,7 +35,7 @@ const validateData = (req, res, next) => {
 }
 
 // Get all issues of the specified series
-issuesRouter.get('/', (req, res) => {
+issuesRouter.get('/', (req, res, next) => {
     db.all("SELECT * FROM Issue WHERE series_id = $seriesId", {$seriesId: req.seriesId}, (error, rows) => {
         if (error) {
             next(error);
@@ -46,7 +46,7 @@ issuesRouter.get('/', (req, res) => {
 });
 
 // Create issue
-issuesRouter.post('/', validateData, (req, res) => {
+issuesRouter.post('/', validateData, (req, res, next) => {
     const { name, issueNumber, publicationDate, artistId } = req.body.issue;
     db.run("INSERT INTO Issue(name, issue_number, publication_date, artist_id, series_id) VALUES($name, $issueNumber, $publicationDate, $artistId, $seriesId)", {
         $name: name,
@@ -70,7 +70,7 @@ issuesRouter.post('/', validateData, (req, res) => {
 });
 
 // Update issue
-issuesRouter.put('/:issueId', validateData, (req, res) => {
+issuesRouter.put('/:issueId', validateData, (req, res, next) => {
     const { name, issueNumber, publicationDate, artistId } = req.body.issue;
     db.run("UPDATE Issue SET name = $name, issue_number = $issueNumber, publication_date = $publicationDate, artist_id = $artistId, series_id = $seriesId WHERE id = $id", {
         $id: req.issueId,
@@ -95,7 +95,7 @@ issuesRouter.put('/:issueId', validateData, (req, res) => {
 });
 
 // Delete issue
-issuesRouter.delete('/:issueId', (req, res) => {
+issuesRouter.delete('/:issueId', (req, res, next) => {
     db.run("DELETE FROM Issue WHERE id = $id", {$id: req.issueId}, (error) => {
         if (error) {
             next(error);

@@ -20,7 +20,7 @@ artistsRouter.param('artistId', (req, res, next, id) => {
 });
 
 // Get all artists
-artistsRouter.get('/', (req, res) => {
+artistsRouter.get('/', (req, res, next) => {
     db.all("SELECT * FROM Artist WHERE is_currently_employed = 1", (error, rows) => {
         if (error) {
             next(error);
@@ -31,12 +31,12 @@ artistsRouter.get('/', (req, res) => {
 });
 
 // Get an artist by ID
-artistsRouter.get('/:artistId', (req, res) => {
+artistsRouter.get('/:artistId', (req, res, next) => {
     res.status(200).json({artist: req.artist});
 });
 
 // Create an artist
-artistsRouter.post('/', (req, res) => {
+artistsRouter.post('/', (req, res, next) => {
     const { name, dateOfBirth, biography } = req.body.artist;
     const isCurrentlyEmployed = req.body.artist.isCurrentlyEmployed === 0 ? 0 : 1;
 
@@ -61,7 +61,7 @@ artistsRouter.post('/', (req, res) => {
 });
 
 // Update an artist
-artistsRouter.put('/:artistId', (req, res) => {
+artistsRouter.put('/:artistId', (req, res, next) => {
     const { name, dateOfBirth, biography, isCurrentlyEmployed } = req.body.artist;
 
     if (name && dateOfBirth && biography && isCurrentlyEmployed) {
@@ -86,7 +86,7 @@ artistsRouter.put('/:artistId', (req, res) => {
 });
 
 // "Delete" an artist (set to unemployed)
-artistsRouter.delete('/:artistId', (req, res) => {
+artistsRouter.delete('/:artistId', (req, res, next) => {
     db.run("UPDATE Artist SET is_currently_employed = 0 WHERE id = $id", {$id: req.id}, (error) => {
         if (error) {
             next(error);
