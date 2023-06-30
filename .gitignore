@@ -1,5 +1,2 @@
 node_modules/
-build/
-test/
 database.sqlite
-.DS_Store
